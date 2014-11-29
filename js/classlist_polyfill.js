@@ -26,7 +26,7 @@
             this.el.className = this.toString();
         },
         contains: function (token) {
-            return this.el.className.indexOf(token) != -1;
+            return this.el.className._indexOf(token) != -1;
         },
         item: function (index) {
             return this[index] || null;

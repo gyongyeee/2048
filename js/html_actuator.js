@@ -13,12 +13,10 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
     window.requestAnimationFrame(function () {
         self.clearContainer(self.tileContainer);
 
-        grid.cells.forEach(function (column) {
-            column.forEach(function (cell) {
-                if (cell) {
-                    self.addTile(cell);
-                }
-            });
+        grid.eachCell(function (x, y, cell) {
+            if (cell) {
+                self.addTile(cell);
+            }
         });
 
         self.updateScore(metadata.score);

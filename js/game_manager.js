@@ -37,14 +37,13 @@ GameManager.prototype.setup = function () {
 
     // Reload the game from a previous game if present
     if (previousState) {
-        this.grid = new Grid(previousState.grid.size,
-            previousState.grid.cells); // Reload grid
+        this.grid = new Grid(previousState.grid); // Reload grid
         this.score = previousState.score;
         this.over = previousState.over;
         this.won = previousState.won;
         this.keepPlaying = previousState.keepPlaying;
     } else {
-        this.grid = new Grid(this.size);
+        this.grid = new Grid({size: this.size});
         this.score = 0;
         this.over = false;
         this.won = false;
@@ -68,8 +67,13 @@ GameManager.prototype.addStartTiles = function () {
 // Adds a tile in a random position
 GameManager.prototype.addRandomTile = function () {
     if (this.grid.cellsAvailable()) {
+        var cells = this.grid.availableCells();
+        if (!cells.length) {
+            throw 'No available cells left!';
+        }
         var value = Math.random() < 0.9 ? 2 : 4;
-        var tile = new Tile(this.grid.randomAvailableCell(), value);
+        var cell = cells[Math.floor(Math.random() * cells.length)];
+        var tile = new Tile(cell, value);
 
         this.grid.insertTile(tile);
     }
@@ -101,7 +105,7 @@ GameManager.prototype.actuate = function () {
 // Represent the current game as an object
 GameManager.prototype.serialize = function () {
     return {
-        grid: this.grid.serialize(),
+        grid: this.grid,
         score: this.score,
         over: this.over,
         won: this.won,
@@ -121,9 +125,9 @@ GameManager.prototype.prepareTiles = function () {
 
 // Move a tile and its representation
 GameManager.prototype.moveTile = function (tile, cell) {
-    this.grid.cells[tile.x][tile.y] = null;
-    this.grid.cells[cell.x][cell.y] = tile;
+    this.grid.removeTile(tile);
     tile.updatePosition(cell);
+    this.grid.insertTile(tile);
 };
 
 // Move tiles on the grid in the specified direction

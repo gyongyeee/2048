@@ -1,13 +1,35 @@
-QUnit.test( "1. Grid(size) class", function( assert ) {
-    assert.equal( typeof(Grid), "function", "constructor exists" );
-    var grid = new Grid(3);
-    assert.equal( grid.size, 3, "Size passed to constructor");
-    assert.ok( Object(grid.cells) instanceof Array, "Cells array initialized" );
-    assert.deepEqual(grid.cells, [[null,null,null],[null,null,null],[null,null,null]], "Cells array is n x n, empty");
+/** @namespace QUnit */
+QUnit.module( "Cell class" );
+QUnit.test( "Tile", function( assert ) {
+    assert.ok( QUnit.is('function', Cell), "constructor exists" );
+    var cell = new Cell();
+
+    assert.strictEqual( cell.getTile(), null, "Tile is null by default" );
+    assert.strictEqual( cell.isAvailable(), true, "Cell is available by default" );
+    assert.strictEqual( cell.isOccupied(), false, "Cell is not occupied by default" );
+
+    assert.strictEqual( cell.setTile(42), cell, "setTile returns the cell object for chaining" );
+    assert.strictEqual( cell.getTile(), 42, "getTile returns value set by setTile" );
+    assert.strictEqual( cell.isAvailable(), false, "Cell is not available if tile was set" );
+    assert.strictEqual( cell.isOccupied(), true, "Cell is occupied if tile is set" );
+
+    assert.strictEqual( cell.clearTile(), cell, "clearTile returns the cell object for chaining" );
+    assert.strictEqual( cell.getTile(), null, "Tile is null when cleared" );
 });
 
-QUnit.test( "2. eachCell(callback) method", function(assert){
-    var grid = new Grid(3), eachCell_log = [];
+
+/*
+QUnit.module( 'Grid class' );
+QUnit.test( "Grid(size) class", function( assert ) {
+    assert.equal( typeof(Grid), "function", "constructor exists" );
+    var grid = new Grid({size: 3});
+    assert.equal( grid.size, 3, "Size passed to constructor");
+    assert.ok( Object(grid.cells) instanceof Array, "Cells array initialized" );
+    assert.deepEqual(grid.cells, [], "Cells array is empty");
+});
+
+QUnit.test( "eachCell(callback) method", function(assert){
+    var grid = new Grid({size: 3}), eachCell_log = [];
     assert.equal( typeof(grid.eachCell), "function", "method exists" );
     grid.eachCell(function (){
         eachCell_log.push(arguments);
@@ -16,57 +38,27 @@ QUnit.test( "2. eachCell(callback) method", function(assert){
         { "0": 0, "1": 0, "2": null }, { "0": 0, "1": 1, "2": null }, { "0": 0, "1": 2, "2": null },
         { "0": 1, "1": 0, "2": null }, { "0": 1, "1": 1, "2": null }, { "0": 1, "1": 2, "2": null },
         { "0": 2, "1": 0, "2": null }, { "0": 2, "1": 1, "2": null }, { "0": 2, "1": 2, "2": null }
-    ] , "calls callback for each empty cell")
+    ] , "calls callback for _each empty cell")
 });
 
-QUnit.test( "3. availableCells() method", function(assert){
-    var grid = new Grid(3);
-    grid.cells[0][0] = 2;
-    grid.cells[1][1] = 2;
-    grid.cells[1][2] = 4;
+QUnit.test( "availableCells() method", function(assert){
+    var grid = new Grid({size: 3, cells: [[2], [null,2,4]]});
     assert.equal( typeof(grid.availableCells), "function", "method exists" );
     assert.deepEqual(grid.availableCells(), [{x:0,y:1},{x:0,y:2},{x:1,y:0},{x:2,y:0},{x:2,y:1},{x:2,y:2}], "returns empty cells only");
 });
 
-QUnit.test( "4. cellsAvailable() method", function(assert){
-    var grid = new Grid(3);
+QUnit.test( "cellsAvailable() method", function(assert){
+    var grid = new Grid({size: 3});
     assert.equal( typeof(grid.cellsAvailable), "function", "method exists" );
     assert.ok( grid.cellsAvailable(), "Empty grid has available cells" );
-    grid.cells[0][0] = 2;
-    grid.cells[1][1] = 2;
-    grid.cells[1][2] = 4;
+    grid = new Grid({size: 3, cells: [[2], [null,2,4]]});
     assert.ok( grid.cellsAvailable(), "Partial grid has available cells" );
-    grid.cells[0][1] = 2;
-    grid.cells[0][2] = 2;
-    grid.cells[1][0] = 2;
-    grid.cells[2][0] = 4;
-    grid.cells[2][1] = 4;
-    grid.cells[2][2] = 4;
+    grid = new Grid({size: 3, cells: [[2,2,2], [2,2,4], [4,4,4]]});
     assert.ok( !grid.cellsAvailable(), "Full grid has no available cells" );
 });
 
-QUnit.test( "5. randomAvailableCell() method", function(assert){
-    var grid = new Grid(3);
-    assert.equal( typeof(grid.randomAvailableCell), "function", "method exists" );
-    grid.cells[0][0] = 2;
-    grid.cells[0][1] = 2;
-    grid.cells[1][1] = 2;
-    grid.cells[1][0] = 2;
-    grid.cells[2][0] = 4;
-    grid.cells[2][1] = 4;
-    var cell = grid.randomAvailableCell();
-    assert.equal(cell.y , 2, "Partial grid has available cells" );
-    grid.cells[0][2] = 2;
-    grid.cells[1][2] = 4;
-    assert.deepEqual( grid.randomAvailableCell(), {x:2,y:2}, "Finds single cell" );
-    grid.cells[2][2] = 4;
-    assert.equal( grid.randomAvailableCell(), null, "Full grid has no available cells" );
-});
-
-QUnit.test( "6. cellContent() method", function(assert){
-    var grid = new Grid(3);
-    grid.cells[1][0] = 2;
-    grid.cells[2][0] = 4;
+QUnit.test( "cellContent() method", function(assert){
+    var grid = new Grid({size: 3, cells:[[],[2],[4]]});
     assert.equal( typeof(grid.withinBounds), "function", "withinBounds method exists" );
     assert.equal( grid.withinBounds({x:0,y:0}), true, "(0,0) is within bounds");
     assert.equal( grid.withinBounds({x:2,y:2}), true, "(2,1) is within bounds");
@@ -87,46 +79,18 @@ QUnit.test( "6. cellContent() method", function(assert){
     assert.equal( grid.cellAvailable({x:1,y:0}), false, "Non-empty cell is available");
 });
 
-QUnit.test( "7. Add / remove tiles", function(assert) {
-    var grid = new Grid(3), tile = {x:0,y:1};
+QUnit.test( "Add / remove tiles", function(assert) {
+    var grid = new Grid({size: 3}), tile = {x:0,y:1};
 
     assert.equal( typeof(grid.insertTile), "function", "insertTile method exists" );
-    grid.insertTile(tile)
-    assert.equal( grid.cells[0][1], tile, "tile is inserted in the correct position");
+    grid.insertTile(tile);
+    assert.equal( grid.cell(0,1), tile, "tile is inserted in the correct position");
 
     assert.equal( typeof(grid.removeTile), "function", "removeTile method exists" );
-    grid.removeTile(tile)
-    assert.equal( grid.cells[0][1], null, "tile is removed from grid");
+    grid.removeTile(tile);
+    assert.equal( grid.cell(0,1), null, "tile is removed from grid");
 });
 /*
-// Set up the initial tiles to start the game with
-Grid.prototype.addStartTiles = function () {
-    for (var i=0; i<this.startTiles; i++) {
-        this.addRandomTile();
-    }
-};
-
-// Adds a tile in a random position
-Grid.prototype.addRandomTile = function () {
-    if (this.cellsAvailable()) {
-        var value = Math.random() < 0.9 ? 2 : 4;
-        //var value = Math.random() < 0.9 ? 256 : 512;
-        var tile = new Tile(this.randomAvailableCell(), value);
-
-        this.insertTile(tile);
-    }
-};
-
-// Save all tile positions and remove merger info
-Grid.prototype.prepareTiles = function () {
-    this.eachCell(function (x, y, tile) {
-        if (tile) {
-            tile.mergedFrom = null;
-            tile.savePosition();
-        }
-    });
-};
-
 // Move a tile and its representation
 Grid.prototype.moveTile = function (tile, cell) {
     this.cells[tile.x][tile.y] = null;
